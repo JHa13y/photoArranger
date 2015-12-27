@@ -8,6 +8,8 @@ it requires the exifread module which can be installed via pip
 import exifread as ef
 import os
 import argparse
+import errno
+import shutil
 
 verbose = False
 outputDir = "./out"
@@ -19,7 +21,7 @@ def main():
 
     for root, dirs, filenames in os.walk(inputDir):
         for f in filenames:
-            handleFile(f)
+            handleFile(os.path.join(root, f))
 
 
 
@@ -41,7 +43,61 @@ def parseArgs():
 
 
 def handleFile(file):
-    print("TODO: Do Somthing with" + file)
+    if(verbose):
+        print("Handling File: " + file)
+
+
+    extension = os.path.splitext(file)[1]
+    extension.lower()
+
+    if(extension == ".jpg" or extension ==".jpeg" or extension ==".tiff"):
+        f = open(file, "rb")
+        tags = ef.process_file(f, stop_tag='DateTimeOriginal')
+        dateCode = tags['EXIF DateTimeOriginal']
+        tolkens  = dateCode.values
+        tolkens = tolkens.split(":")
+        year = tolkens[0]
+        month = tolkens[1]
+        moveFile(f, year, month)
+    elif (extension == ".avi"):
+        print("Do Something")
+    elif (extension == ".mov" or extension == ".MOV"):
+        print("Do Something")
+    else:
+        print("Warning:  Did not recognize file type for: " + file)
+        return;
+
+
+def moveFile(file, year, month):
+    months = {
+        "01": "january",
+        "02": "february",
+        "03": "march",
+        "04": "april",
+        "05": "may",
+        "06": "june",
+        "07": "july",
+        "08": "august",
+        "09": "september",
+        "10": "october",
+        "11": "november",
+        "12": "december",
+    }
+    if(verbose):
+        print("Moving file:" + file.name+ " To: " + year +"/" + month)
+    dirPath = os.path.join(outputDir, year)
+    dirPath = os.path.join(dirPath, months[month])
+
+    confirmMakeDir(dirPath)
+    fileOutPath = os.path.join(dirPath, os.path.basename(file.name))
+    shutil.copy2(file.name, fileOutPath)
+
+def confirmMakeDir(path):
+    try:
+        os.makedirs(path)
+    except OSError as exception:
+        if exception.errno != errno.EEXIST:
+            raise
 
 if __name__ == "__main__":
     main()
