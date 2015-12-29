@@ -49,9 +49,8 @@ def handleFile(file):
 
     extension = os.path.splitext(file)[1]
     extension.lower()
-
+    f = open(file, "rb")
     if(extension == ".jpg" or extension ==".jpeg" or extension ==".tiff"):
-        f = open(file, "rb")
         tags = ef.process_file(f, stop_tag='DateTimeOriginal')
         dateCode = tags['EXIF DateTimeOriginal']
         tolkens  = dateCode.values
@@ -59,14 +58,30 @@ def handleFile(file):
         year = tolkens[0]
         month = tolkens[1]
         moveFile(f, year, month)
+    elif (extension == ".mp4"):
+        print("Warning mp4 files Not yet supported")
+        copyToFailed(f)
+    elif (extension == ".png"):
+        print("Warning PNG files Not yet supported")
+        copyToFailed(f)
     elif (extension == ".avi"):
-        print("Do Something")
+        print("Warning avi files Not yet supported")
+        copyToFailed(f)
     elif (extension == ".mov" or extension == ".MOV"):
-        print("Do Something")
+        print("Warning  files Not yet supported")
+        copyToFailed(f)
     else:
         print("Warning:  Did not recognize file type for: " + file)
         return;
 
+def copyToFailed(file):
+    if(verbose):
+        print("Copying Filed File:" + file.name+ " To : " + "FailedToOrganize")
+    dirPath = os.path.join(outputDir, "FailedToOrganize")
+
+    confirmMakeDir(dirPath)
+    fileOutPath = os.path.join(dirPath, os.path.basename(file.name))
+    shutil.copy2(file.name, fileOutPath)
 
 def moveFile(file, year, month):
     months = {
